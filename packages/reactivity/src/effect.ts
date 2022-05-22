@@ -1,5 +1,13 @@
 
 export let activeEffect = undefined;
+
+function cleanupEffect(effect) {
+    const { deps } = effect;
+    for(let i = 0; i<deps.length; i++) {
+        deps[i].delete(effect); // 解除effect， 重新收集
+    }
+    effect.deps.length = 0;
+}
 class ReactiveEffect {
     // 增加一个父结点指向
     public parent = null;
@@ -16,7 +24,9 @@ class ReactiveEffect {
         try{ 
             this.parent = activeEffect;
             activeEffect = this;
-            return this.fn();
+            // 这里需要在执行用户函数之前， 1）把之前收集的内容清空
+            cleanupEffect(this);
+            return this.fn(); // 2）再重新收集
         } finally{
             activeEffect = this.parent;
             this.parent = null;
@@ -62,12 +72,17 @@ export function track(target, type, key) {
 export function trigger(target, type, key, value, oldValue) {
     const depsMap = targetMap.get(target);
     if(!depsMap) return;
-    const effects = depsMap.get(key);
-    effects && effects.forEach(effect =>{
-        if (effect !== activeEffect) { // 避免递归，死循环的情况
-            effect.run()
-        }
-        
-    })
+    let effects = depsMap.get(key);
+    // 在执行之前 先拷贝一份，不要关联引用
+    if(effects) {
+        effects = new Set(effects);
+        effects.forEach(effect =>{
+            if (effect !== activeEffect) { // 避免递归，死循环的情况
+                effect.run()
+            }
+            
+        })
+    }
+    
 
 }
