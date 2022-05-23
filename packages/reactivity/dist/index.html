@@ -15,16 +15,50 @@
     const { effect, reactive } = VueReactivity;
     const data = { flag: true, name: '111', age: 13, address: {num: 1234}};
     const state = reactive(data);
-    effect(() => {
+    // 1、增加stop 示例
+    // let runner = effect(() => {
+    //     console.log('render');
+    //     app.innerHTML =  state.age;
+    // })
+    // runner.effect.stop()
+    // setTimeout(() =>{
+    //     state.age= 45;
+    //     setTimeout(() =>{
+    //         runner();
+    //     },3000)
+    // }, 1000)
+
+    // 2、 调度器示例
+    let waiting = false;
+    let runner = effect(() => {
         console.log('render');
-        app.innerHTML = state.flag? state.name : state.age;
-    })
+        app.innerHTML =  state.age;
+    }, {
+        scheduler() {  // 用户自己决定什么时候渲染
+            console.log('run');
+            if(!waiting) {
+                waiting = true;
+                setTimeout(() =>{
+                    runner();
+                    waiting = false;
+                }, 1000)
+            }
+        }
+    });
+
+    state.age = 10000;
+    state.age = 20000;
+    state.age = 30000;
+    state.age = 40000;
+    state.age = 50000;
+
     setTimeout(() =>{
-        state.flag = false;
-        setTimeout(() =>{
-            console.log('name改变， 不应该render了')
-            state.name = '变了'
-        }, 1000)
-    }, 1000)
+        state.age = 10000;
+    state.age = 60000;
+    state.age = 70000;
+    state.age = 60000;
+    state.age = 90000;
+    }, 3000)
+
 </script>
 </html>
