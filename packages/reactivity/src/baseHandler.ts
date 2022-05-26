@@ -1,4 +1,6 @@
 import { track, trigger } from './effect'
+import { isObject } from '@vue/shared';
+import { reactive } from './reactive'
 
 export const enum ReactiveFlags {
     IS_REACTIVE = '__v_isReactive'
@@ -12,7 +14,11 @@ export const mutableHandlers = {
         // 收集依赖
         track(target, 'get', key);
         // 这里可以监控到用户取值了
-        return Reflect.get(target, key, receiver); // 改变this指向， receiver是指proxy
+        let res = Reflect.get(target, key, receiver); // 改变this指向， receiver是指proxy
+        if(isObject(res)) {
+            return reactive(res); // 深度代理实现；  性能好，取值才会代理
+        }
+        return res;
     },
     set(target, key, value, receiver) {
         let oldValue = target[key];
