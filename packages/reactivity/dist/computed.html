@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app"></div>
+</body>
+
+<script src="./reactivity.global.js"></script>
+<script>
+    const { effect, reactive } = VueReactivity;
+    const data = { firstName: '王', lastName: '文'};
+    const state = reactive(data);
+    const fullName = computed({
+        get() {
+            return state.firstName + state.lastName;
+        },
+        set(newValue) {
+            console.log(2, newValue);
+        }
+    })
+    //第二种写法
+    const fullName2 = computed(() => {
+        return state.firstName + state.lastName;
+    })
+    // computed 有缓存 所以肯定有一个缓存的标识
+    // 依赖有变化 才重新执行，没有变化 就不重新执行
+    // 访问
+    console.log(fullName.value);
+    fullName.value = 1000; // 就会走到set里，会console出2
+  
+    effect(() => {
+        app.innerHTML =  fullName.value;
+    })
+    setTimeout(() =>{
+        state.firstName = '张'
+    }, 1000)
+    
+
+   
+
+</script>
+</html>

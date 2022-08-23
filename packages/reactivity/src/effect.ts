@@ -8,7 +8,7 @@ function cleanupEffect(effect) {
     }
     effect.deps.length = 0;
 }
-class ReactiveEffect {
+export class ReactiveEffect {
     // 增加一个父结点指向
     public parent = null;
     public deps = [];
